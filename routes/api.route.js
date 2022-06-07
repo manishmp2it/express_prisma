@@ -10,7 +10,12 @@ router.get('/users', async (req, res, next) => {
   try{
 
     const users = await prisma.user.findMany({
-      include:{posts:true}
+      include:{
+        posts : {
+        include: { 
+          categories:true
+        }
+      }},
     })
     res.json(users);
 
@@ -30,7 +35,6 @@ router.get('/users/:id', async (req, res, next) => {
       where:{
         id : id
       },
-
       include : {posts:true}
     })
 
@@ -45,7 +49,7 @@ router.get('/users/:id', async (req, res, next) => {
 
 
 router.post('/users',[
-  
+
   check('name','Name must be valid length').isLength({min:10,max:15}),
   check('email','email must be valid').isEmail(),
 ] ,  async (req, res, next) => {
@@ -65,7 +69,8 @@ router.post('/users',[
         email: req.body.email,
         posts: {
           create :{
-            title:req.body.title 
+            title:req.body.title,
+            categoryIDs:req.body.cat_id,           
           }
         },
       },
@@ -102,9 +107,8 @@ router.delete('/users/:id', async (req, res, next) => {
 router.patch('/users/:id', async (req, res, next) => {
   
   try{
-
+    
     const {id} =req.params;
-
     const user = await prisma.user.update({
       where:{
         id:id
